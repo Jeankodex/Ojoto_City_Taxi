@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Services from "./pages/Services";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import BookingPage from "./pages/BookingPage";  
 import Layout from "./components/Layout";
 
 function App() {
@@ -13,12 +14,13 @@ function App() {
     <Routes>
       {/* Layout is the parent route */}
       <Route path="/" element={<Layout />}>
-        <Route index element={<Landing />} />  {/* default "/" */}
+        <Route index element={<Landing />} />  
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="login" element={<Login />} />
         <Route path="services" element={<Services />} />
         <Route path="register" element={<Register />} />
+        <Route path="book" element={<BookingPage />} />   
         <Route path="dashboard" element={<Dashboard />} />
       </Route>
     </Routes>

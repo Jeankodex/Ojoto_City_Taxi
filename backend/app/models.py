@@ -1,5 +1,5 @@
 
-from .extensions import db
+from .extensions import db 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
@@ -21,13 +21,20 @@ class User(db.Model):
 
 class Trip(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    destination_address = db.Column(db.String(200), nullable=False)
-    date = db.Column(db.String(50), nullable=False)
-    time = db.Column(db.String(50), nullable=False)
-    distance_km = db.Column(db.Float, nullable=False)
-    fare = db.Column(db.Float, nullable=False)
+    passenger_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    # Location & Distance
+    origin_lat = db.Column(db.Float)
+    origin_lng = db.Column(db.Float)
+    dest_lat = db.Column(db.Float)
+    dest_lng = db.Column(db.Float)
+    origin_address = db.Column(db.String(255))
+    dest_address = db.Column(db.String(255))
+    distance_km = db.Column(db.Float)
+
+    # Fare & Status
+    fare = db.Column(db.Float)
+    status = db.Column(db.String(50), default="pending")
 
 
 class ContactMessage(db.Model):

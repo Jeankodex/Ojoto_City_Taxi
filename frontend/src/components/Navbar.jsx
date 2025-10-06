@@ -1,18 +1,34 @@
-
-import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { HiOutlineMenuAlt3, HiX } from "react-icons/hi"; // Shopify-style icons
+import React, { useState, useEffect } from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { HiOutlineMenuAlt3, HiX } from "react-icons/hi";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ Only check ojoto_token
+  const checkLoggedIn = () => {
+    const token = localStorage.getItem("ojoto_token");
+    setIsLoggedIn(!!token);
+  };
+
+  useEffect(() => {
+    checkLoggedIn();
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("ojoto_token");
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
 
   const menuItems = [
     { name: "Home", to: "/" },
     { name: "About Us", to: "/about" },
     { name: "Our Services", to: "/services" },
     { name: "Contact Us", to: "/contact" },
-    { name: "Register", to: "/register" },
-    { name: "Login", to: "/login" },
   ];
 
   return (
@@ -30,7 +46,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Hamburger Button (Mobile only) */}
+        {/* Mobile hamburger */}
         <button
           className="lg:hidden text-3xl text-indigo-600"
           onClick={() => setIsOpen(!isOpen)}
@@ -39,8 +55,8 @@ export default function Navbar() {
           {isOpen ? <HiX /> : <HiOutlineMenuAlt3 />}
         </button>
 
-        {/* Menu (Desktop) */}
-        <nav className="hidden lg:flex gap-3">
+        {/* Desktop menu */}
+        <nav className="hidden lg:flex gap-3 items-center">
           {menuItems.map((item) => (
             <NavLink
               key={item.to}
@@ -56,17 +72,41 @@ export default function Navbar() {
               {item.name}
             </NavLink>
           ))}
+
+          {!isLoggedIn ? (
+            <>
+              <NavLink
+                to="/register"
+                className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+              >
+                Register
+              </NavLink>
+              <NavLink
+                to="/login"
+                className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-700"
+              >
+                Login
+              </NavLink>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow hover:bg-red-500"
+            >
+              Logout
+            </button>
+          )}
         </nav>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile dropdown */}
       {isOpen && (
         <div className="lg:hidden bg-white shadow-md px-6 py-4 flex flex-col gap-3">
           {menuItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={() => setIsOpen(false)} // close menu when clicked
+              onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 `block px-4 py-2 rounded-lg transition ${
                   isActive
@@ -78,6 +118,35 @@ export default function Navbar() {
               {item.name}
             </NavLink>
           ))}
+
+          {!isLoggedIn ? (
+            <>
+              <NavLink
+                to="/register"
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 inline-block"
+              >
+                Register
+              </NavLink>
+              <NavLink
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-700 inline-block"
+              >
+                Login
+              </NavLink>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }}
+              className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow hover:bg-red-500 inline-block"
+            >
+              Logout
+            </button>
+          )}
         </div>
       )}
     </header>

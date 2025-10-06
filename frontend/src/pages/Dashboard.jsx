@@ -1,214 +1,137 @@
-
-// src/pages/Dashboard.jsx
-import React, { useEffect, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getProfile, listTrips, createTrip, deleteTrip, updateTrip } from '../api'
-import ProfileCard from '../components/ProfileCard'
-import TripList from '../components/TripList'
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ProfileCard from "../components/ProfileCard";
+import api, {getProfile, listTrips} from "../api";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null)
-  const [trips, setTrips] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
-  const [showSubmitError, setShowSubmitError] = useState(false)
+  const [user, setUser] = useState(null);
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
-  // booking form
-  const [form, setForm] = useState({
-    destination_address: '',
-    date: '',
-    time: '',
-    distance_km: '',
-    notes: ''
-  })
+  // Fetch user profile
+  const fetchProfile = async () => {
+    try {
+      const res = await getProfile();
+      setUser(res.data);
+    } catch (err) {
+      console.error("Failed to fetch profile:", err);
+    }
+  };
 
-  const navigate = useNavigate()
+  // Fetch trips
+  const fetchTrips = async () => {
+    setLoading(true);
+    try {
+      const res = await listTrips();
+      setTrips(res.data);
+    } catch (err) {
+      console.error("Failed to fetch trips:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem('ojoto_token')
-    if (!token) return navigate('/login')
-    async function fetchData() {
-      try {
-        const [u, t] = await Promise.all([getProfile(), listTrips()])
-        setUser(u.data.user || u.data)
-        setTrips(t.data || [])
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [navigate])
+    fetchProfile();
+    fetchTrips();
+  }, []);
 
-  function handleChange(e) {
-    if (showSubmitError) setShowSubmitError(false)
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
-
-  const isFormValid = useMemo(() => {
-    return (
-      form.destination_address.trim().length > 0 &&
-      form.date &&
-      form.time &&
-      !isNaN(parseFloat(form.distance_km)) &&
-      parseFloat(form.distance_km) > 0
-    )
-  }, [form])
-
-  async function handleCreate(e) {
-    e.preventDefault()
-    if (!isFormValid) {
-      setShowSubmitError(true)
-      return
-    }
-
-    setCreating(true)
+  const handleDelete = async (tripId) => {
+    if (!window.confirm("Are you sure you want to delete this trip?")) return;
     try {
-      const payload = { ...form, distance_km: parseFloat(form.distance_km) }
-      const res = await createTrip(payload)
-      setTrips(prev => [res.data.trip, ...prev])
-      setForm({
-        destination_address: '',
-        date: '',
-        time: '',
-        distance_km: '',
-        notes: ''
-      })
-      setShowSubmitError(false)
-      alert(res.data.msg || 'Trip booked')
+      await api.deleteTrip(tripId);
+      setMessage("✅ Trip deleted successfully!");
+      fetchTrips();
     } catch (err) {
-      alert(err?.response?.data?.msg || err?.response?.data?.error || 'Failed to create trip')
-    } finally {
-      setCreating(false)
+      setMessage("❌ Error deleting trip.");
     }
-  }
+  };
 
-  async function handleDelete(id) {
-    if (!confirm('Delete this trip?')) return
-    try {
-      await deleteTrip(id)
-      setTrips(prev => prev.filter(t => t.id !== id))
-      alert("Trip deleted successfully")
-    } catch (err) {
-      alert('Delete failed')
-    }
-  }
+  const handleEdit = (tripId) => navigate(`/edit-trip/${tripId}`);
+  const handlePayment = (tripId) =>
+    alert(`💳 Payment for Trip #${tripId} will be integrated soon!`);
 
-  async function handleEditSave(id, data) {
-    try {
-      const res = await updateTrip(id, {
-        ...data,
-        distance_km: parseFloat(data.distance_km)
-      })
-      setTrips(prev => prev.map(t => (t.id === id ? res.data.trip : t)))
-      alert("Trip updated successfully")
-    } catch (err) {
-      alert("Update failed")
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem('ojoto_token')
-    navigate('/login')
-  }
-
-  if (loading) {
-    return <div className="text-center py-20">Loading...</div>
-  }
+  if (!user) return <p className="p-4">Loading profile...</p>;
 
   return (
-    <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
-      {/* Profile */}
-      <div className="lg:col-span-1">
-        <ProfileCard user={user} onLogout={logout} />
+    <div className="p-6 space-y-6 md:space-y-0 md:grid md:grid-cols-3 md:gap-6">
+      {/* Profile & Welcome */}
+      <div className="col-span-1 space-y-4">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Welcome, {user.firstname}!
+        </h2>
+        <ProfileCard user={user} />
       </div>
 
-      {/* Trips */}
-      <div className="lg:col-span-2">
-        {/* Book form */}
-        <div className="bg-white p-4 rounded shadow mb-6">
-          <h3 className="text-lg font-semibold mb-3">Book Your Ride</h3>
-          <form
-            onSubmit={handleCreate}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+      {/* Trips Section */}
+      <div className="col-span-2 bg-white rounded-2xl shadow-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800">My Trips</h1>
+          <button
+            onClick={() => navigate("/book")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
           >
-            <input
-              name="destination_address"
-              placeholder="Destination"
-              value={form.destination_address}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded md:col-span-2 w-full"
-            />
-            <input
-              name="date"
-              type="date"
-              value={form.date}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-            <input
-              name="time"
-              type="time"
-              value={form.time}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-            <input
-              name="distance_km"
-              type="number"
-              step="0.1"
-              placeholder="Distance (km)"
-              value={form.distance_km}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded w-full"
-            />
-            <textarea
-              name="notes"
-              placeholder="Notes (optional)"
-              value={form.notes}
-              onChange={handleChange}
-              className="border px-3 py-2 rounded md:col-span-2 w-full"
-            />
-
-            {showSubmitError && (
-              <p className="md:col-span-2 text-sm text-red-600">
-                Please fill Destination, Date, Time and a valid Distance (km) to
-                enable booking.
-              </p>
-            )}
-
-            <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
-              <button
-                type="submit"
-                className={`flex-1 bg-indigo-600 text-white py-2 px-4 rounded ${
-                  creating
-                    ? "opacity-60 cursor-not-allowed"
-                    : "hover:bg-indigo-700"
-                }`}
-                disabled={creating}
-              >
-                {creating ? "Booking..." : "Book Ride"}
-              </button>
-
-              <button
-                type="button"
-                className="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-                onClick={() => alert("Pay Now flow not implemented yet")}
-              >
-                PAY NOW
-              </button>
-            </div>
-          </form>
+            + Book New Trip
+          </button>
         </div>
 
-        {/* Trip List with inline editing */}
-        <TripList
-          trips={trips}
-          onDelete={handleDelete}
-          onEditSave={handleEditSave}
-        />
+        {message && (
+          <p className="mb-4 text-center text-green-600 font-medium">{message}</p>
+        )}
+
+        {loading ? (
+          <p>Loading trips...</p>
+        ) : trips.length === 0 ? (
+          <p className="text-gray-600">No trips booked yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-200 rounded-lg shadow-sm">
+              <thead className="bg-gray-100 text-left">
+                <tr>
+                  {["#", "Origin", "Destination", "Distance (km)", "Fare (₦)", "Date", "Time", "Actions"].map((col) => (
+                    <th key={col} className="p-3 border-b text-gray-700 font-semibold">{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {trips.map((trip, i) => (
+                  <tr key={trip.id} className="hover:bg-gray-50 transition">
+                    <td className="p-3 border-b">{i + 1}</td>
+                    <td className="p-3 border-b">{trip.origin_address || "—"}</td>
+                    <td className="p-3 border-b">{trip.destination_address || "—"}</td>
+                    <td className="p-3 border-b">{trip.distance_km}</td>
+                    <td className="p-3 border-b font-semibold text-green-600">₦{trip.fare}</td>
+                    <td className="p-3 border-b">{trip.date || "—"}</td>
+                    <td className="p-3 border-b">{trip.time || "—"}</td>
+                    <td className="p-3 border-b space-x-2">
+                      <button
+                        onClick={() => handleEdit(trip.id)}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(trip.id)}
+                        className="bg-red-600 text-white px-3 py-1 rounded-md text-sm hover:bg-red-700 transition"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => handlePayment(trip.id)}
+                        className="bg-green-600 text-white px-3 py-1 rounded-md text-sm hover:bg-green-700 transition"
+                      >
+                        Pay Now
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }

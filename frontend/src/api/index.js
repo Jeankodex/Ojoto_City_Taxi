@@ -19,8 +19,7 @@ export async function createTrip(payload){ return api.post('/trips', payload) }
 export async function listTrips(){ return api.get('/trips') }
 export async function deleteTrip(id){ return api.delete(`/trips/${id}`) }
 export async function updateTrip(id, payload) {return api.put(`/trips/${id}`, payload)}
-export async function sendMessage(payload) {return api.post("/contact", payload)}
-
+export async function sendMessage(payload) {return api.post('/contact', payload)}
 
 
 
