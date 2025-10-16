@@ -1,176 +1,128 @@
 
-// src/components/TripList.jsx
-import React, { useState, useMemo } from "react";
 
-export default function TripList({ trips, onDelete, onEditSave }) {
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
-  const [showSubmitError, setShowSubmitError] = useState(false);
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-  function startEdit(trip) {
-    setEditingId(trip.id);
-    setEditForm({
-      destination_address: trip.destination_address,
-      date: trip.date,
-      time: trip.time,
-      distance_km: trip.distance_km,
-      notes: trip.notes || "",
-    });
-    setShowSubmitError(false);
-  }
+export default function TripList() {
+  const [trips, setTrips] = useState([]);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
-  function cancelEdit() {
-    setEditingId(null);
-    setEditForm({});
-    setShowSubmitError(false);
-  }
+  useEffect(() => {
+    fetchTrips();
+  }, []);
 
-  function handleChange(e) {
-    if (showSubmitError) setShowSubmitError(false);
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  }
+  const fetchTrips = async () => {
+    try {
+      const token = localStorage.getItem("ojoto_token");
+      if (!token) return;
 
-  const isFormValid = useMemo(() => {
-    return (
-      editForm.destination_address?.trim().length > 0 &&
-      editForm.date &&
-      editForm.time &&
-      !isNaN(parseFloat(editForm.distance_km)) &&
-      parseFloat(editForm.distance_km) > 0
-    );
-  }, [editForm]);
+      const res = await fetch("http://localhost:5000/api/trips", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
 
-  async function saveEdit(id) {
-    if (!isFormValid) {
-      setShowSubmitError(true);
-      return;
+      if (res.ok) {
+        setTrips(data);
+      } else {
+        setMessage("❌ Failed to load trips.");
+      }
+    } catch (err) {
+      console.error("Error fetching trips:", err);
+      setMessage("❌ Server error. Please try again.");
     }
-    await onEditSave(id, editForm);
-    setEditingId(null);
-  }
+  };
 
-  if (trips.length === 0) {
-    return (
-      <div className="text-sm text-gray-500 italic">
-        No trips yet. Book your first trip above.
-      </div>
-    );
-  }
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this trip?")) return;
+
+    try {
+      const token = localStorage.getItem("ojoto_token");
+      if (!token) return;
+
+      const res = await fetch(`http://localhost:5000/api/trips/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        setMessage("✅ Trip deleted successfully!");
+        setTrips((prev) => prev.filter((t) => t.id !== id));
+
+        // Clear message after 3 seconds
+        setTimeout(() => setMessage(""), 3000);
+      } else {
+        setMessage("❌ Failed to delete trip.");
+      }
+    } catch (err) {
+      console.error("Delete trip error:", err);
+      setMessage("❌ Server error. Please try again.");
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/booking?edit=${id}`);
+  };
 
   return (
-    <ul className="space-y-4">
-      {trips.map((t) => (
-        <li
-          key={t.id}
-          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col"
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Trips</h2>
+
+      {message && (
+        <div
+          className={`p-3 rounded text-center mb-4 transition-all ${
+            message.includes("✅")
+              ? "bg-green-100 text-green-700 border border-green-200"
+              : "bg-red-100 text-red-700 border border-red-200"
+          }`}
         >
-          {editingId === t.id ? (
-            // EDIT MODE
-            <div className="space-y-3">
-              <input
-                name="destination_address"
-                value={editForm.destination_address}
-                onChange={handleChange}
-                placeholder="Destination"
-                className="border px-3 py-2 rounded-lg w-full text-sm focus:ring-2 focus:ring-indigo-500"
-              />
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="date"
-                  name="date"
-                  value={editForm.date}
-                  onChange={handleChange}
-                  className="border px-3 py-2 rounded-lg flex-1 text-sm focus:ring-2 focus:ring-indigo-500"
-                />
-                <input
-                  type="time"
-                  name="time"
-                  value={editForm.time}
-                  onChange={handleChange}
-                  className="border px-3 py-2 rounded-lg flex-1 text-sm focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <input
-                type="number"
-                step="0.1"
-                name="distance_km"
-                value={editForm.distance_km}
-                onChange={handleChange}
-                placeholder="Distance (km)"
-                className="border px-3 py-2 rounded-lg w-full text-sm focus:ring-2 focus:ring-indigo-500"
-              />
-              <textarea
-                name="notes"
-                value={editForm.notes}
-                onChange={handleChange}
-                placeholder="Notes (optional)"
-                className="border px-3 py-2 rounded-lg w-full text-sm focus:ring-2 focus:ring-indigo-500"
-              />
+          {message}
+        </div>
+      )}
 
-              {showSubmitError && (
-                <p className="text-sm text-red-600">
-                  Please fill Destination, Date, Time and a valid Distance (km).
-                </p>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                <button
-                  onClick={() => saveEdit(t.id)}
-                  disabled={!isFormValid}
-                  className={`px-4 py-2 rounded-lg text-sm text-white transition ${
-                    isFormValid
-                      ? "bg-indigo-600 hover:bg-indigo-700"
-                      : "bg-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Save
-                </button>
-                <button
-                  onClick={cancelEdit}
-                  className="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-500"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            // VIEW MODE
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
-              <div>
-                <div className="font-semibold text-gray-700 text-lg">
-                  {t.destination_address}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  {t.date} • {t.time}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  {t.distance_km} km • ₦{t.fare_estimate ?? t.fare}
-                </div>
-                {t.notes && (
-                  <div className="text-sm text-gray-400 mt-1 italic">
-                    {t.notes}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  onClick={() => startEdit(t)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete(t.id)}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
+      {trips.length === 0 ? (
+        <p className="text-gray-500">No trips found.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="py-3 px-4 border-b text-left">Origin</th>
+                <th className="py-3 px-4 border-b text-left">Destination</th>
+                <th className="py-3 px-4 border-b text-left">Date</th>
+                <th className="py-3 px-4 border-b text-left">Time</th>
+                <th className="py-3 px-4 border-b text-left">Fare (₦)</th>
+                <th className="py-3 px-4 border-b text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trips.map((trip) => (
+                <tr key={trip.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 border-b">{trip.origin_address}</td>
+                  <td className="py-3 px-4 border-b">{trip.dest_address}</td>
+                  <td className="py-3 px-4 border-b">{trip.trip_date}</td>
+                  <td className="py-3 px-4 border-b">{trip.trip_time}</td>
+                  <td className="py-3 px-4 border-b">{trip.fare}</td>
+                  <td className="py-3 px-4 border-b text-center space-x-2">
+                    <button
+                      onClick={() => handleEdit(trip)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+                    >
+                     ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(trip.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }

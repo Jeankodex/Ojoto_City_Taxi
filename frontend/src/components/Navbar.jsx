@@ -8,7 +8,6 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Only check ojoto_token
   const checkLoggedIn = () => {
     const token = localStorage.getItem("ojoto_token");
     setIsLoggedIn(!!token);
@@ -34,16 +33,22 @@ export default function Navbar() {
   return (
     <header className="bg-white shadow sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
+        {/* Logo and Slogan */}
         <Link to="/" className="flex items-center gap-2">
           <img
             src="/images/logo.jpg"
             alt="Ojoto City Cab"
             className="w-10 h-10 rounded-full"
           />
-          <span className="font-bold text-xl text-indigo-600">
-            Ojoto City Taxi
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-xl text-indigo-600">
+              OJOTO CITY TAXI
+            </span>
+            {/* ✅ Added Slogan */}
+            <span className="text-sm text-black-500 italic">
+              Where Every Ride Counts....
+            </span>
+          </div>
         </Link>
 
         {/* Mobile hamburger */}

@@ -13,9 +13,6 @@ class Config:
     JWT_TOKEN_LOCATION = ["headers"]   # only accept tokens in headers
     JWT_HEADER_TYPE = "Bearer"         # expect "Authorization: Bearer <token>"
 
-    BASE_FARE = int(os.getenv("BASE_FARE", 200))
-    RATE_PER_KM = int(os.getenv("RATE_PER_KM", 500))
-
-
+    
 
 

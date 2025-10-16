@@ -7,6 +7,7 @@ import Services from "./pages/Services";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import BookingPage from "./pages/BookingPage";  
+import EditTripPage from "./pages/EditTripPage";
 import Layout from "./components/Layout";
 
 function App() {
@@ -20,7 +21,8 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="services" element={<Services />} />
         <Route path="register" element={<Register />} />
-        <Route path="book" element={<BookingPage />} />   
+        <Route path="book" element={<BookingPage />} />  
+         <Route path="/edit-trip/:tripId" element={<EditTripPage />} />
         <Route path="dashboard" element={<Dashboard />} />
       </Route>
     </Routes>
