@@ -1,11 +1,7 @@
 // frontend/src/components/booking/BookingForm.jsx
 import React, { useState, useEffect, useRef } from "react";
 
-/*
-  Notes:
-  - Replace NOMINATIM_CONTACT_EMAIL with your contact email (Nominatim polite usage).
-  - For production or higher volume, switch to a paid geocoding provider (Mapbox, Google, LocationIQ).
-*/
+
 const NOMINATIM_CONTACT_EMAIL = "johnwachuks@gmail.com";
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 
@@ -394,12 +390,11 @@ export default function BookingForm({ onTripReady, initialData }) {
             <button
               type="button"
               onClick={handleUseMyLocation}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 transition text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-semibold shadow-md hover:shadow-lg hover:from-indigo-600 hover:to-blue-700 transition-all active:scale-95"
             >
-              Use my location
+            📍 Use My Location
             </button>
           </div>
-
           {/* suggestions dropdown */}
           {originOpen && originResults.length > 0 && (
             <ul className="absolute left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-auto">

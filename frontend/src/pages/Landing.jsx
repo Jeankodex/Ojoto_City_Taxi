@@ -30,7 +30,7 @@ export default function Landing(){
             <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
               Safe, Affordable, and Reliable Rides for <span className="text-indigo-600">YOU</span>
             </h1>
-            <p className="mt-4 text-gray-600 max-w-xl">
+            <p className="mt-4 text-gray-700 max-w-xl">
               Book a cab in seconds. Transparent fares, trusted local drivers and a simple booking flow — ride with confidence.
             </p>
 
@@ -43,7 +43,7 @@ export default function Landing(){
               </Link>
             </div>
 
-            <div className="mt-8 text-sm text-gray-500">
+            <div className="mt-8 text-sm text-gray-700">
               <strong>Need help?</strong> Contact us at <a href="mailto:info@ojotocitytaxi.com" className="text-indigo-600">info@ojotocitytaxi.com</a>
             </div>
           </div>
@@ -71,8 +71,8 @@ export default function Landing(){
           <h3 className="text-xl font-bold text-center mb-6">How it works</h3>
           <div className="max-w-3xl mx-auto grid gap-6">
             <Step n="1" title="Sign up" text="Create a free account using your email and phone number." />
-            <Step n="2" title="Book a ride" text="Enter your destination, pick a date and time, and get an instant fare estimate." />
-            <Step n="3" title="Enjoy the ride" text="Meet your driver  and enjoy a safe trip — pay via trnsfer or POS." />
+            <Step n="2" title="Book a ride" text="Enter your origin, destination, pick a date and time, and get an instant fare estimate." />
+            <Step n="3" title="Enjoy the ride" text="Confirm your booking, meet your driver  and enjoy a safe trip — pay via transfer or POS." />
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react"; // 👈 added useRef
 import { useNavigate, useLocation } from "react-router-dom";
 import BookingForm from "../components/booking/BookingForm";
 import MapView from "../components/booking/MapView";
@@ -11,6 +11,8 @@ export default function BookingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const summaryRef = useRef(null); // 👈 new ref
 
   const queryParams = new URLSearchParams(location.search);
   const editTripId = queryParams.get("edit");
@@ -54,6 +56,13 @@ export default function BookingPage() {
     setCurrentTrip(null);
     setMessage("");
   };
+
+  // 👇 Auto scroll when tripData changes (user clicks Calculate Fare)
+  useEffect(() => {
+    if (tripData && tripData.calculated && summaryRef.current) {
+      summaryRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [tripData]);
 
   const handleTripCreated = useCallback((trip) => {
     setCurrentTrip(trip);
@@ -142,7 +151,10 @@ export default function BookingPage() {
             </div>
 
             {tripData && (
-              <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+              <div
+                ref={summaryRef} // 👈 attach ref here
+                className="bg-white rounded-2xl shadow-md p-6 border border-gray-100"
+              >
                 <FareSummary
                   distance={tripData.distance}
                   duration={tripData.duration}

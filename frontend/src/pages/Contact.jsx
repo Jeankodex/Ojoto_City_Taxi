@@ -1,4 +1,3 @@
-
 // src/pages/Contact.jsx
 import React, { useState, useEffect } from "react"
 import { sendMessage } from "../api"
@@ -15,6 +14,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" })
   const [status, setStatus] = useState("")
   const [statusType, setStatusType] = useState("success") // "success" | "error"
+  const [isSending, setIsSending] = useState(false)
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -22,20 +22,24 @@ export default function Contact() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    setIsSending(true)
+    setStatus("Sending message...")
     try {
       const res = await sendMessage(form)
-      setStatus(res.data.message)
+      setStatus(res.data.message || "Message sent successfully!")
       setStatusType("success")
       setForm({ name: "", email: "", message: "" }) // reset
     } catch (err) {
       setStatus("Failed to send message. Try again.")
       setStatusType("error")
+    } finally {
+      setIsSending(false)
     }
   }
 
   useEffect(() => {
-    if (status) {
-      const timer = setTimeout(() => setStatus(""), 5000) // 5s auto clear
+    if (status && status !== "Sending message...") {
+      const timer = setTimeout(() => setStatus(""), 3000)
       return () => clearTimeout(timer)
     }
   }, [status])
@@ -88,25 +92,13 @@ export default function Contact() {
           <div className="pt-4">
             <p className="font-semibold text-gray-700 mb-2">Connect with us:</p>
             <div className="flex gap-4 text-2xl">
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="hover:text-indigo-700 text-indigo-600"
-              >
+              <a href="#" aria-label="Facebook" className="hover:text-indigo-700 text-indigo-600">
                 <FaFacebook />
               </a>
-              <a
-                href="#"
-                aria-label="WhatsApp"
-                className="hover:text-green-600 text-indigo-600"
-              >
+              <a href="#" aria-label="WhatsApp" className="hover:text-green-600 text-indigo-600">
                 <FaWhatsapp />
               </a>
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="hover:text-pink-500 text-indigo-600"
-              >
+              <a href="#" aria-label="Instagram" className="hover:text-pink-500 text-indigo-600">
                 <FaInstagram />
               </a>
             </div>
@@ -148,9 +140,14 @@ export default function Contact() {
             />
             <button
               type="submit"
-              className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition"
+              disabled={isSending}
+              className={`w-full font-semibold py-3 rounded-lg transition ${
+                isSending
+                  ? "bg-gray-400 cursor-not-allowed text-white"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              }`}
             >
-              Send Message
+              {isSending ? "Sending message..." : "Send Message"}
             </button>
           </form>
 

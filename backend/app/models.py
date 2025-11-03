@@ -22,19 +22,13 @@ class User(db.Model):
 class Trip(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     passenger_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-    # Trip info from BookingPage
     trip_id = db.Column(db.String(100), nullable=False)
     origin_address = db.Column(db.String(255), nullable=False)
     dest_address = db.Column(db.String(255), nullable=False)
     distance_km = db.Column(db.Float, nullable=False)
     fare = db.Column(db.Float, nullable=False)
-
-    # 👇 Add these
     trip_date = db.Column(db.String(50), nullable=False)
     trip_time = db.Column(db.String(50), nullable=False)
-
-
     status = db.Column(db.String(50), default="pending")
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 

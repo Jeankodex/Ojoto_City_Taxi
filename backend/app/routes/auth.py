@@ -10,7 +10,7 @@ import re
 import os
 from flask import current_app
 from werkzeug.utils import secure_filename
-from PIL import Image  # optional: pip install pillow
+from PIL import Image  
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "webp"}
 MAX_FILE_SIZE = 2 * 1024 * 1024  # 2 MB
@@ -126,8 +126,6 @@ def profile():
         # Save file
         file.save(filepath)
         
-
-
         # optional: resize image to max width for storage
         try:
             img = Image.open(filepath)
