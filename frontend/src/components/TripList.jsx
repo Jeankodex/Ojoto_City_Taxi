@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../api";
 
 export default function TripList() {
   const [trips, setTrips] = useState([]);
@@ -17,7 +18,7 @@ export default function TripList() {
       const token = localStorage.getItem("ojoto_token");
       if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/trips", {
+      const res = await fetch(`${API_BASE_URL}/trips`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -40,7 +41,7 @@ export default function TripList() {
       const token = localStorage.getItem("ojoto_token");
       if (!token) return;
 
-      const res = await fetch(`http://localhost:5000/api/trips/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/trips/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -61,7 +62,7 @@ export default function TripList() {
   };
 
   const handleEdit = (id) => {
-    navigate(`/booking?edit=${id}`);
+    navigate(`/book?edit=${id}`);
   };
 
   return (
@@ -105,7 +106,7 @@ export default function TripList() {
                   <td className="py-3 px-4 border-b">{trip.fare}</td>
                   <td className="py-3 px-4 border-b text-center space-x-2">
                     <button
-                      onClick={() => handleEdit(trip)}
+                      onClick={() => handleEdit(trip.id)}
                       className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
                     >
                      ✏️ Edit

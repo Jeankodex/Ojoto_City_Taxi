@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import BookingForm from "../components/booking/BookingForm";
 import MapView from "../components/booking/MapView";
 import FareSummary from "../components/booking/FareSummary";
+import { API_BASE_URL } from "../api";
 
 export default function BookingPage() {
   const [tripData, setTripData] = useState(null);
@@ -23,7 +24,7 @@ export default function BookingPage() {
       if (!token) return;
 
       try {
-        const res = await fetch(`http://localhost:5000/api/trips/${editTripId}`, {
+        const res = await fetch(`${API_BASE_URL}/trips/${editTripId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -87,8 +88,8 @@ export default function BookingPage() {
 
       const isEditMode = !!editTripId;
       const url = isEditMode
-        ? `http://localhost:5000/api/trips/${editTripId}`
-        : "http://localhost:5000/api/trips";
+        ? `${API_BASE_URL}/trips/${editTripId}`
+        : `${API_BASE_URL}/trips`;
       const method = isEditMode ? "PUT" : "POST";
 
       const res = await fetch(url, {

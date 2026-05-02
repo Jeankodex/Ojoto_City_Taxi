@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchProfile, updateProfile } from "../api";
+import { fetchProfile, SERVER_BASE_URL, updateProfile } from "../api";
 
 export default function ProfileCard({ user: initialUserProp }) {
   const [user, setUser] = useState(initialUserProp || null);
@@ -22,7 +22,7 @@ export default function ProfileCard({ user: initialUserProp }) {
       setAddress(initialUserProp.address || "");
       setPreview(
         initialUserProp.profile_image
-          ? `http://localhost:5000/static/uploads/${initialUserProp.profile_image}`
+          ? `${SERVER_BASE_URL}/static/uploads/${initialUserProp.profile_image}`
           : null
       );
     } else {
@@ -36,7 +36,7 @@ export default function ProfileCard({ user: initialUserProp }) {
           setAddress(res.data.address || "");
           setPreview(
             res.data.profile_image
-              ? `http://localhost:5000/static/uploads/${res.data.profile_image}`
+              ? `${SERVER_BASE_URL}/static/uploads/${res.data.profile_image}`
               : null
           );
         } catch (err) {
@@ -92,7 +92,7 @@ export default function ProfileCard({ user: initialUserProp }) {
     setAddress(user?.address || "");
     setPreview(
       user?.profile_image
-        ? `http://localhost:5000/static/uploads/${user.profile_image}`
+        ? `${SERVER_BASE_URL}/static/uploads/${user.profile_image}`
         : null
     );
   };
@@ -100,7 +100,7 @@ export default function ProfileCard({ user: initialUserProp }) {
   const avatarUrl =
     preview ||
     (user?.profile_image
-      ? `http://localhost:5000/static/uploads/${user.profile_image}`
+      ? `${SERVER_BASE_URL}/static/uploads/${user.profile_image}`
       : "/images/default-avatar.png");
 
   return (

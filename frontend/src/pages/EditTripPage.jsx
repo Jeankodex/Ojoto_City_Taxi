@@ -3,6 +3,7 @@ import BookingForm from "../components/booking/BookingForm";
 import FareSummary from "../components/booking/FareSummary";
 import MapView from "../components/booking/MapView";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../api";
 
 export default function EditTripPage() {
   const { tripId } = useParams(); 
@@ -22,7 +23,7 @@ export default function EditTripPage() {
       }
       try {
         const token = localStorage.getItem("ojoto_token");
-        const res = await fetch(`http://localhost:5000/api/trips/${tripId}`, {
+        const res = await fetch(`${API_BASE_URL}/trips/${tripId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -87,7 +88,7 @@ export default function EditTripPage() {
     if (!tripData || !tripId) return;
     try {
       const token = localStorage.getItem("ojoto_token");
-      const res = await fetch(`http://localhost:5000/api/trips/${tripId}`, {
+      const res = await fetch(`${API_BASE_URL}/trips/${tripId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
