@@ -11,7 +11,6 @@ export default function BookingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
   const summaryRef = useRef(null); // 👈 new ref
 
   const queryParams = new URLSearchParams(location.search);

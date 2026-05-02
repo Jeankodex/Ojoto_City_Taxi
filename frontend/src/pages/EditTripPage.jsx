@@ -1,25 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import BookingForm from "../components/booking/BookingForm";
 import FareSummary from "../components/booking/FareSummary";
 import MapView from "../components/booking/MapView";
 import { useParams, useNavigate } from "react-router-dom";
 
-/**
- * EditTripPage flow:
- * - Fetch trip from API by id
- * - Pass fetched trip as initialData to BookingForm
- * - BookingForm will geocode and call onTripReady(calculated=false) to show map with markers
- * - User edits fields freely. Only when user clicks "Calculate Fare" does BookingForm call onTripReady(calculated=true)
- * - When calculated=true parent shows FareSummary with updated fare/distance/duration
- * - Clicking FareSummary confirm triggers handleUpdate() which PUTs updated trip
- */
-
 export default function EditTripPage() {
-  const { tripId } = useParams(); // route should be /edit-trip/:tripId
-  const [tripData, setTripData] = useState(null); // contains latest form/trip payload
+  const { tripId } = useParams(); 
+  const [tripData, setTripData] = useState(null); 
   const [message, setMessage] = useState("");
   const [mapCoords, setMapCoords] = useState({ originCoords: null, destCoords: null });
   const navigate = useNavigate();
+
+  // ✅ Add ref for trip summary
+  const tripSummaryRef = useRef(null);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -38,8 +31,6 @@ export default function EditTripPage() {
           return;
         }
 
-        // backend returns trip_to_dict shape
-        // setTripData with backend values. BookingForm will geocode and call onTripReady(calculated=false)
         setTripData({
           id: data.id,
           origin_address: data.origin_address,
@@ -48,7 +39,6 @@ export default function EditTripPage() {
           fare: data.fare,
           trip_date: data.trip_date,
           trip_time: data.trip_time,
-          // aliases for older code compatibility:
           origin: data.origin_address,
           destination: data.dest_address,
           date: data.date,
@@ -63,13 +53,10 @@ export default function EditTripPage() {
     fetchTrip();
   }, [tripId]);
 
-  // BookingForm will call this whenever it has new trip payload (prefill or calculated)
+  // ✅ BookingForm callback
   const handleTripReady = (payload) => {
-    // payload may contain originCoords/destCoords and calculated flag
-    // we store them so we can show map and fare summary conditionally
     setTripData((prev) => ({
       ...(prev || {}),
-      // normalize keys so FareSummary uses distance_km/fare/trip_date/trip_time
       origin_address: payload.origin ?? prev?.origin_address,
       dest_address: payload.destination ?? prev?.dest_address,
       origin: payload.origin ?? prev?.origin,
@@ -79,18 +66,23 @@ export default function EditTripPage() {
       duration: payload.duration ?? prev?.duration,
       trip_date: payload.tripDate ?? prev?.trip_date,
       trip_time: payload.tripTime ?? prev?.trip_time,
-      // track if this payload is the result of a fresh calculation (user clicked Calculate Fare)
       calculated: payload.calculated === true,
     }));
 
-    // update coords for map display
     setMapCoords({
       originCoords: payload.originCoords ?? null,
       destCoords: payload.destCoords ?? null,
     });
+
+    // ✅ Auto scroll when fare is calculated
+    if (payload.calculated === true) {
+      setTimeout(() => {
+        tripSummaryRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 400);
+    }
   };
 
-  // Called when user confirms in FareSummary (update trip on server)
+  // ✅ Update trip handler
   const handleUpdate = async () => {
     if (!tripData || !tripId) return;
     try {
@@ -114,7 +106,6 @@ export default function EditTripPage() {
       const data = await res.json();
       if (res.ok) {
         setMessage("✅ Trip updated successfully!");
-        // keep success message for 3s then redirect
         setTimeout(() => {
           setMessage("");
           navigate("/dashboard");
@@ -151,7 +142,6 @@ export default function EditTripPage() {
                 fare: tripData.fare,
                 trip_date: tripData.trip_date,
                 trip_time: tripData.trip_time,
-                // aliases for BookingForm to pick (it looks at origin_address/origin)
                 origin: tripData.origin_address,
                 destination: tripData.dest_address,
                 tripDate: tripData.trip_date,
@@ -159,17 +149,19 @@ export default function EditTripPage() {
               }}
             />
 
-            {/* FareSummary ONLY shows after user clicked Calculate Fare (calculated === true) */}
+            {/* ✅ Smooth scroll target */}
             {tripData.calculated && (
-              <FareSummary
-                distance={tripData.distance_km}
-                duration={tripData.duration}
-                fare={tripData.fare}
-                tripDate={tripData.trip_date}
-                tripTime={tripData.trip_time}
-                onConfirm={handleUpdate}
-                isLoading={false}
-              />
+              <div ref={tripSummaryRef}>
+                <FareSummary
+                  distance={tripData.distance_km}
+                  duration={tripData.duration}
+                  fare={tripData.fare}
+                  tripDate={tripData.trip_date}
+                  tripTime={tripData.trip_time}
+                  onConfirm={handleUpdate}
+                  isLoading={false}
+                />
+              </div>
             )}
 
             {message && (
@@ -189,7 +181,9 @@ export default function EditTripPage() {
           <div className="lg:sticky lg:top-8">
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Trip Route</h2>
-              <p className="text-sm text-gray-600">View & edit pickup and destination on the map</p>
+              <p className="text-sm text-gray-600">
+                View & edit pickup and destination on the map
+              </p>
             </div>
             <div
               className="h-[500px] w-full rounded-lg border border-gray-200 shadow-lg bg-white overflow-hidden"
@@ -198,10 +192,6 @@ export default function EditTripPage() {
               <MapView
                 origin={mapCoords.originCoords}
                 destination={mapCoords.destCoords}
-                onTripCreated={() => {
-                  /* MapView triggers onTripCreated only when both coords present.
-                     But we use BookingForm -> onTripReady to produce final trip object for fare calculation */
-                }}
               />
             </div>
           </div>

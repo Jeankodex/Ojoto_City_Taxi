@@ -1,8 +1,8 @@
-"""Initial migration
+"""initial
 
-Revision ID: 2cb1972269c6
+Revision ID: b47a31552765
 Revises: 
-Create Date: 2025-09-28 02:01:44.258071
+Create Date: 2026-05-02 11:47:08.407766
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2cb1972269c6'
+revision = 'b47a31552765'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,21 +33,22 @@ def upgrade():
     sa.Column('phone_number', sa.String(length=20), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=300), nullable=False),
+    sa.Column('profile_image', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
     op.create_table('trip',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('passenger_id', sa.Integer(), nullable=True),
-    sa.Column('origin_lat', sa.Float(), nullable=True),
-    sa.Column('origin_lng', sa.Float(), nullable=True),
-    sa.Column('dest_lat', sa.Float(), nullable=True),
-    sa.Column('dest_lng', sa.Float(), nullable=True),
-    sa.Column('origin_address', sa.String(length=255), nullable=True),
-    sa.Column('dest_address', sa.String(length=255), nullable=True),
-    sa.Column('distance_km', sa.Float(), nullable=True),
-    sa.Column('fare', sa.Float(), nullable=True),
+    sa.Column('passenger_id', sa.Integer(), nullable=False),
+    sa.Column('trip_id', sa.String(length=100), nullable=False),
+    sa.Column('origin_address', sa.String(length=255), nullable=False),
+    sa.Column('dest_address', sa.String(length=255), nullable=False),
+    sa.Column('distance_km', sa.Float(), nullable=False),
+    sa.Column('fare', sa.Float(), nullable=False),
+    sa.Column('trip_date', sa.String(length=50), nullable=False),
+    sa.Column('trip_time', sa.String(length=50), nullable=False),
     sa.Column('status', sa.String(length=50), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['passenger_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
